@@ -32,11 +32,12 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -279,10 +280,23 @@ public class MapRecord implements Record {
     }
 
     @Override
-    public Date getAsDate(final String fieldName, final String format) {
-        final FieldConverter<Object, LocalDate> converter = StandardFieldConverterRegistry.getRegistry().getFieldConverter(LocalDate.class);
-        final LocalDate localDate = converter.convertField(getValue(fieldName), Optional.ofNullable(format), fieldName);
-        return localDate == null ? null : java.sql.Date.valueOf(localDate);
+    public LocalDate getAsLocalDate(final String fieldName, final String format) {
+        return convertFieldToDateTime(LocalDate.class, fieldName, format);
+    }
+
+    @Override
+    public LocalDateTime getAsLocalDateTime(String fieldName, String format) {
+        return convertFieldToDateTime(LocalDateTime.class, fieldName, format);
+    }
+
+    @Override
+    public OffsetDateTime getAsOffsetDateTime(final String fieldName, final String format) {
+        return convertFieldToDateTime(OffsetDateTime.class, fieldName, format);
+    }
+
+    private <T> T convertFieldToDateTime(Class<T> clazz, String fieldName, String format) {
+        final FieldConverter<Object, T> converter = StandardFieldConverterRegistry.getRegistry().getFieldConverter(clazz);
+        return converter.convertField(getValue(fieldName), Optional.ofNullable(format), fieldName);
     }
 
     @Override
@@ -495,7 +509,7 @@ public class MapRecord implements Record {
     @Override
     public void remove(final RecordField field) {
         final Optional<RecordField> existingField = resolveField(field);
-        existingField.ifPresent(recordField -> values.remove(recordField.getFieldName()));
+        existingField.ifPresent(this::removeValue);
     }
 
     @Override
@@ -517,8 +531,8 @@ public class MapRecord implements Record {
             return false;
         }
 
-        final Object currentValue = values.remove(currentName);
-        values.put(newName, currentValue);
+        final Object currentValue = removeValue(currentName);
+        updateValue(newName, currentValue);
         return true;
     }
 
@@ -548,22 +562,39 @@ public class MapRecord implements Record {
                 return field;
             }
 
-            final Object previousValue = values.put(fieldName, value);
-            if (!Objects.equals(value, previousValue)) {
-                serializedForm = Optional.empty();
-            }
-
+            updateValue(fieldName, value);
             return field;
         }
 
         final RecordField recordField = field.get();
         final Object coerced = isTypeChecked() ? DataTypeUtils.convertType(value, recordField.getDataType(), fieldName) : value;
-        final Object previousValue = values.put(recordField.getFieldName(), coerced);
-        if (!Objects.equals(coerced, previousValue)) {
+        updateValue(recordField.getFieldName(), coerced);
+
+        return field;
+    }
+
+    private void updateValue(final String fieldName, final Object value) {
+        final Object previousValue = values.put(fieldName, value);
+        if (!Objects.equals(value, previousValue)) {
+            serializedForm = Optional.empty();
+        }
+    }
+
+    private Object removeValue(final RecordField field) {
+        if (field == null) {
+            return null;
+        }
+
+        return removeValue(field.getFieldName());
+    }
+
+    private Object removeValue(final String fieldName) {
+        final Object previousValue = values.remove(fieldName);
+        if (previousValue != null) {
             serializedForm = Optional.empty();
         }
 
-        return field;
+        return previousValue;
     }
 
     @Override

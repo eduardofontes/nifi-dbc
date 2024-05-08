@@ -17,12 +17,17 @@
 package org.apache.nifi.registry.flow;
 
 public class RegisteredFlowSnapshotMetadata {
+    private String branch;
     private String bucketIdentifier;
     private String flowIdentifier;
-    private int version;
+    private String version;
     private long timestamp;
     private String author;
     private String comments;
+
+    public String getBranch() {
+        return branch;
+    }
 
     public String getBucketIdentifier() {
         return bucketIdentifier;
@@ -32,7 +37,7 @@ public class RegisteredFlowSnapshotMetadata {
         return flowIdentifier;
     }
 
-    public int getVersion() {
+    public String getVersion() {
         return version;
     }
 
@@ -48,6 +53,10 @@ public class RegisteredFlowSnapshotMetadata {
         return comments;
     }
 
+    public void setBranch(final String branch) {
+        this.branch = branch;
+    }
+
     public void setBucketIdentifier(String bucketIdentifier) {
         this.bucketIdentifier = bucketIdentifier;
     }
@@ -56,7 +65,7 @@ public class RegisteredFlowSnapshotMetadata {
         this.flowIdentifier = flowIdentifier;
     }
 
-    public void setVersion(int version) {
+    public void setVersion(String version) {
         this.version = version;
     }
 

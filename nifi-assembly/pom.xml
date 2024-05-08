@@ -178,12 +178,12 @@ language governing permissions and limitations under the License. -->
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-bootstrap</artifactId>
+            <artifactId>nifi-nar-utils</artifactId>
             <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-property-utils</artifactId>
+            <artifactId>nifi-bootstrap</artifactId>
             <version>2.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -286,19 +286,13 @@ language governing permissions and limitations under the License. -->
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-datadog-nar</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <type>nar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-standard-nar</artifactId>
             <version>2.0.0-SNAPSHOT</version>
             <type>nar</type>
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-jetty-bundle</artifactId>
+            <artifactId>nifi-jetty-nar</artifactId>
             <version>2.0.0-SNAPSHOT</version>
             <type>nar</type>
         </dependency>
@@ -436,18 +430,6 @@ language governing permissions and limitations under the License. -->
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-couchbase-nar</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <type>nar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-couchbase-services-api-nar</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <type>nar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-hl7-nar</artifactId>
             <version>2.0.0-SNAPSHOT</version>
             <type>nar</type>
@@ -527,24 +509,6 @@ language governing permissions and limitations under the License. -->
         <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-jms-processors-nar</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <type>nar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-cassandra-nar</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <type>nar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-cassandra-services-api-nar</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
-            <type>nar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-cassandra-services-nar</artifactId>
             <version>2.0.0-SNAPSHOT</version>
             <type>nar</type>
         </dependency>
@@ -902,6 +866,12 @@ language governing permissions and limitations under the License. -->
             <version>2.0.0-SNAPSHOT</version>
             <type>nar</type>
         </dependency>
+        <dependency>
+            <groupId>org.apache.nifi</groupId>
+            <artifactId>nifi-protobuf-services-nar</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+            <type>nar</type>
+        </dependency>
         <!-- AspectJ library needed by the Java Agent used for native library loading (see bootstrap.conf) -->
         <dependency>
             <groupId>org.aspectj</groupId>
@@ -1020,49 +990,6 @@ language governing permissions and limitations under the License. -->
                 <dependency>
                     <groupId>org.apache.nifi</groupId>
                     <artifactId>nifi-hbase_2-client-service-nar</artifactId>
-                    <version>2.0.0-SNAPSHOT</version>
-                    <type>nar</type>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>include-solr</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-                <property>
-                    <name>allProfiles</name>
-                </property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.nifi</groupId>
-                    <artifactId>nifi-solr-nar</artifactId>
-                    <version>2.0.0-SNAPSHOT</version>
-                    <type>nar</type>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>include-hive3</id>
-            <!-- This profile handles the inclusion of Hive 3 artifacts. The NAR
-            is quite large and makes the resultant binary distribution significantly
-            larger (275+ MB). -->
-            <activation>
-                <activeByDefault>false</activeByDefault>
-                <property>
-                    <name>allProfiles</name>
-                </property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.nifi</groupId>
-                    <artifactId>nifi-hive3-nar</artifactId>
-                    <version>2.0.0-SNAPSHOT</version>
-                    <type>nar</type>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.nifi</groupId>
-                    <artifactId>nifi-hive-services-api-nar</artifactId>
                     <version>2.0.0-SNAPSHOT</version>
                     <type>nar</type>
                 </dependency>

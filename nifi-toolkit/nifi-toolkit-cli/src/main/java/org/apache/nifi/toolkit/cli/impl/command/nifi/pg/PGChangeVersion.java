@@ -17,6 +17,7 @@
 package org.apache.nifi.toolkit.cli.impl.command.nifi.pg;
 
 import org.apache.commons.cli.MissingOptionException;
+import org.apache.nifi.registry.flow.RegisteredFlowSnapshotMetadata;
 import org.apache.nifi.toolkit.cli.api.CommandException;
 import org.apache.nifi.toolkit.cli.api.Context;
 import org.apache.nifi.toolkit.cli.impl.client.nifi.FlowClient;
@@ -33,6 +34,7 @@ import org.apache.nifi.web.api.entity.VersionedFlowSnapshotMetadataSetEntity;
 import org.apache.nifi.web.api.entity.VersionedFlowUpdateRequestEntity;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -71,13 +73,21 @@ public class PGChangeVersion extends AbstractNiFiCommand<VoidResult> {
         }
 
         // start with the version specified in the arguments
-        Integer newVersion = getIntArg(properties, CommandOption.FLOW_VERSION);
+        String newVersion = getArg(properties, CommandOption.FLOW_VERSION);
+
+        return changeVersion(client, existingVersionControlInfo, newVersion, pgId, getContext());
+    }
+
+    public VoidResult changeVersion(final NiFiClient client, final VersionControlInformationEntity existingVersionControlInfo,
+            String newVersion, final String pgId, final Context context) throws NiFiClientException, IOException, MissingOptionException, CommandException {
+        final VersionsClient versionsClient = client.getVersionsClient();
+        final VersionControlInformationDTO existingVersionControlDTO = existingVersionControlInfo.getVersionControlInformation();
 
         // if no version was specified, automatically determine the latest and change to that
         if (newVersion == null) {
             newVersion = getLatestVersion(client, existingVersionControlDTO);
 
-            if (newVersion.intValue() == existingVersionControlDTO.getVersion().intValue()) {
+            if (Objects.equals(newVersion, existingVersionControlDTO.getVersion())) {
                 throw new NiFiClientException("Process group already at latest version");
             }
         }
@@ -97,10 +107,13 @@ public class PGChangeVersion extends AbstractNiFiCommand<VoidResult> {
                 final VersionedFlowUpdateRequestEntity updateRequest = versionsClient.getUpdateRequest(updateRequestId);
                 if (updateRequest != null && updateRequest.getRequest().isComplete()) {
                     completed = true;
+                    if (updateRequest.getRequest().getFailureReason() != null) {
+                        throw new NiFiClientException(updateRequest.getRequest().getFailureReason());
+                    }
                     break;
                 } else {
                     try {
-                        if (getContext().isInteractive()) {
+                        if (context.isInteractive()) {
                             println("Waiting for update request to complete...");
                         }
                         Thread.sleep(2000);
@@ -121,7 +134,7 @@ public class PGChangeVersion extends AbstractNiFiCommand<VoidResult> {
         return VoidResult.getInstance();
     }
 
-    private int getLatestVersion(final NiFiClient client, final VersionControlInformationDTO existingVersionControlDTO)
+    String getLatestVersion(final NiFiClient client, final VersionControlInformationDTO existingVersionControlDTO)
             throws NiFiClientException, IOException {
         final FlowClient flowClient = client.getFlowClient();
 
@@ -133,11 +146,17 @@ public class PGChangeVersion extends AbstractNiFiCommand<VoidResult> {
         if (versions.getVersionedFlowSnapshotMetadataSet() == null || versions.getVersionedFlowSnapshotMetadataSet().isEmpty()) {
             throw new NiFiClientException("No versions available");
         }
+        return getLatestVersion(versions);
+    }
 
-        int latestVersion = 1;
+    private String getLatestVersion(final VersionedFlowSnapshotMetadataSetEntity versions) {
+        long latestTimestamp = 0;
+        String latestVersion = null;
         for (VersionedFlowSnapshotMetadataEntity version : versions.getVersionedFlowSnapshotMetadataSet()) {
-            if (version.getVersionedFlowSnapshotMetadata().getVersion() > latestVersion) {
-                latestVersion = version.getVersionedFlowSnapshotMetadata().getVersion();
+            final RegisteredFlowSnapshotMetadata versionMetadata = version.getVersionedFlowSnapshotMetadata();
+            if (versionMetadata.getTimestamp() > latestTimestamp) {
+                latestTimestamp = versionMetadata.getTimestamp();
+                latestVersion = versionMetadata.getVersion();
             }
         }
         return latestVersion;
